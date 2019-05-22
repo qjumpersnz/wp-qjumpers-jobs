@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WP Qjumpers Jobs
+ * Plugin Name: WP QJumpers Jobs
  * Plugin URI: https://github.com/qjumpersnz/wp-qjumpers-jobs
  * Description: A Wordpress Plugin to embed QJumpers Jobs in your site
  * Version: 0.1.0
@@ -29,6 +29,7 @@ function register_qj_jobs_plugin_settings()
     //register our settings
     register_setting('qj-jobs-settings-group', 'api_key');
     register_setting('qj-jobs-settings-group', 'api_url');
+    register_setting('qj-jobs-settings-group', 'jobsite_url');
 }
 
 function qj_plugin_options_page()
@@ -44,11 +45,15 @@ function qj_plugin_options_page()
             <table class="form-table">
                 <tr valign="top">
                     <th scope="row">API Key</th>
-                    <td><input type="text" name="api_key" value="<?php echo esc_attr(get_option('api_key')); ?>" size="30" /></td>
+                    <td><input type="text" name="api_key" value="<?php echo esc_attr(get_option('api_key')); ?>" size="30" maxlength="30" placeholder="xxxxxxxxxxxxx" /></td>
                 </tr>
                 <tr valign="top">
                     <th scope="row">API URL</th>
-                    <td><input type="text" name="api_url" value="<?php echo esc_attr(get_option('api_url')); ?>" size="30" /></td>
+                    <td><input type="text" name="api_url" value="<?php echo esc_attr(get_option('api_url')); ?>" size="30" maxlength="2000" placeholder="https://qjumpers-api.qjumpers.co" /></td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Job Site URL</th>
+                    <td><input type="text" name="jobsite_url" value="<?php echo esc_attr(get_option('jobsite_url')); ?>" size="30" maxlength="2000" placeholder="https://qjumpersjobs.co" /></td>
                 </tr>
 
             </table>
@@ -67,6 +72,8 @@ function qj_jobs_shortcode()
 
     $apikey = get_option('api_key');
     $apiurl = get_option('api_url');
+    $jobsiteurl = get_option('jobsite_url');
+
 
     $headers = array(
         'Authorization' => 'Basic ' . $apikey,
@@ -83,31 +90,32 @@ function qj_jobs_shortcode()
         $jsonBody = wp_remote_retrieve_body($response);
         $data = json_decode($jsonBody, true);
 
-        foreach($data['content'] as $obj){
+        foreach ($data['content'] as $obj) {
             $address = $obj['address'];
-            $link = '//qa.qjumpers.jobs' . '/applications/add/' . $obj['id'] . '?jobinvitationid='
-            ?>            
-                <div class="qj-jobs">
-                    <div class="qj-jobs_row">
-                        <div class="qj-jobs_col">
-                            <h4><?php echo esc_attr($obj['title']); ?></h4>
-                            <span class=""><?php echo esc_attr($obj['industory']); ?></span>
-                        </div>
-                        <div class="qj-jobs_col">
-                            <span class=""><?php echo esc_attr($address['state']); ?> <?php echo esc_attr($address['city']); ?></span>
-                        </div>                    
+            $jobsite_url = $jobsiteurl ? $jobsiteurl : 'https://qjumpersjobs.co';
+            $link = $jobsite_url . '/applications/add/' . $obj['id'] . '?jobinvitationid='
+            ?>
+            <div class="qj-jobs">
+                <div class="qj-jobs_row">
+                    <div class="qj-jobs_col">
+                        <h4><?php echo esc_attr($obj['title']); ?></h4>
+                        <span class=""><?php echo esc_attr($obj['industory']); ?></span>
                     </div>
-                    <div class="qj-jobs_row qj-jobs_desc">                    
-                        <?php echo esc_attr($obj['shortDescription']); ?>                    
-                    </div>
-                    <div>                
-                        <a href="<?php echo esc_attr($link); ?>">Apply</a>
+                    <div class="qj-jobs_col">
+                        <span class=""><?php echo esc_attr($address['state']); ?> <?php echo esc_attr($address['city']); ?></span>
                     </div>
                 </div>
-            <?php
-        }
-    } catch (Exception $ex) {
-        echo esc_attr("<p>No jobs available</p>");
-    } // end try/catch
+                <div class="qj-jobs_row qj-jobs_desc">
+                    <?php echo esc_attr($obj['shortDescription']); ?>
+                </div>
+                <div>
+                    <a href="<?php echo esc_attr($link); ?>">Apply</a>
+                </div>
+            </div>
+        <?php
+    }
+} catch (Exception $ex) {
+    echo esc_attr("<p>No jobs available</p>");
+} // end try/catch
 }
 ?>
