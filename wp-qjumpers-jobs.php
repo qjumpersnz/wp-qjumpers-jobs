@@ -102,6 +102,7 @@ function qj_jobs_shortcode()
                         <span class=""><?php echo esc_attr($obj['industory']); ?></span>
                     </div>
                     <div class="qj-jobs_col">
+                        <p class=""><?php echo esc_attr($obj['hierarchyName']); ?></p>
                         <span class=""><?php echo esc_attr($address['state']); ?> <?php echo esc_attr($address['city']); ?></span>
                     </div>
                 </div>
